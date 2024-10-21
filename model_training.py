@@ -1,6 +1,7 @@
-"""Скрипт для обучения модели машинного обучения."""
+"""train model"""
 
 import os
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -21,28 +22,22 @@ def train_model(X_train, y_train):
     best_model = None
     best_score = 0
 
-    # Проверим распределение классов в y_train
     class_counts = y_train.value_counts()
     min_class_samples = class_counts.min()
 
     if min_class_samples < 2:
-        print(
-            "Недостаточно образцов в одном из классов для выполнения кросс-валидации."
-        )
+        print("Недостаточно образцов в одном из классов для кросс-валидации.")
         print("Обучение модели без кросс-валидации.")
-        cv = None  # Не используем кросс-валидацию
+        cv = None
     else:
         cv = min(5, min_class_samples)
 
-    # Проверим, что y_train содержит не менее двух классов
     if len(np.unique(y_train)) < 2:
         raise ValueError(
-            "Целевая переменная y_train должна содержать как минимум два класса."
+            "Целевая переменная y_train должна содержать как минимум 2 класса."
         )
 
-    y_train = (
-        y_train.values.ravel()
-    )  # Преобразуем в одномерный массив, если необходимо
+    y_train = y_train.values.ravel()
 
     for name, model in models.items():
         try:
@@ -116,15 +111,13 @@ if __name__ == "__main__":
     X_train = pd.read_csv('data/X_train_fe.csv')
     y_train = pd.read_csv('data/y_train.csv')['Churn']
 
-    # Проверяем, что число образцов в X_train и y_train совпадает
     assert len(X_train) == len(
         y_train
     ), "Число образцов в X_train и y_train не совпадает."
 
-    # Проверяем, что y_train содержит не менее двух классов
     if len(np.unique(y_train)) < 2:
         raise ValueError(
-            "Целевая переменная y_train должна содержать как минимум два класса."
+            "Целевая переменная y_train должна содержать как минимум 2 класса."
         )
 
     model = train_model(X_train, y_train)

@@ -1,4 +1,4 @@
-"""Скрипт для предобработки данных."""
+"""Preprocessing data for training and testing."""
 
 import numpy as np
 import pandas as pd
@@ -35,7 +35,7 @@ def check_multicollinearity(df):
 
 
 def preprocess_data(df, is_training=True):
-    # Если это обучающие данные, удаляем пропуски в целевой переменной
+
     if is_training and 'Churn' in df.columns:
         df = df.dropna(subset=['Churn'])
 
@@ -59,7 +59,8 @@ def preprocess_data(df, is_training=True):
 def split_data(df, target_column):
     if target_column not in df.columns:
         raise ValueError(
-            f"Column '{target_column}' not found in the DataFrame. Available columns: {df.columns}"
+            f"Column '{target_column}' not found in the DataFrame. "
+            f"Available columns: {df.columns}"
         )
     X = df.drop(columns=[target_column])
     y = df[target_column]
@@ -69,7 +70,6 @@ def split_data(df, target_column):
 if __name__ == "__main__":
     data = load_data('data/customer_data.csv')
 
-    # Преобразование столбца 'Churn' в числовой тип
     if 'Churn' in data.columns:
         data['Churn'] = data['Churn'].astype(int)
 

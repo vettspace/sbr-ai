@@ -1,4 +1,4 @@
-"""Скрипт для создания и отбора признаков."""
+"""Feature engineering."""
 
 import numpy as np
 import pandas as pd
@@ -12,20 +12,16 @@ def safe_divide(a, b):
 
 
 def feature_engineering(df, is_training=True):
-    # Сохраняем целевую переменную и удаляем её из данных, если это обучающие данные
     target = None
     if is_training and 'Churn' in df.columns:
         target = df['Churn']
         df = df.drop('Churn', axis=1)
 
-    # Преобразование булевых значений в числовые
     df = df.replace({True: 1, False: 0})
 
-    # Преобразование данных в числовой формат
     for col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # Создание новых признаков
     if 'NumTransactions' in df.columns and 'Tenure' in df.columns:
         df['TotalTransactions'] = df['NumTransactions'] * df['Tenure']
         df['AvgTransactionsPerMonth'] = safe_divide(
@@ -45,16 +41,13 @@ def feature_engineering(df, is_training=True):
     if 'Tenure' in df.columns and 'MonthlyCharges' in df.columns:
         df['TenureByCharges'] = df['Tenure'] * df['MonthlyCharges']
 
-    # Замена бесконечных значений на NaN
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    # Заполнение пропущенных значений нулями
+
     df.fillna(0, inplace=True)
 
-    # Масштабирование признаков
     scaler = StandardScaler()
     df[df.columns] = scaler.fit_transform(df)
 
-    # Возвращаем целевую переменную, если это обучающие данные
     if is_training and target is not None:
         df['Churn'] = target
 

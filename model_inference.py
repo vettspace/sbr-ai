@@ -1,4 +1,4 @@
-"""Интеграция модели и предсказание оттока клиентов на новых данных"""
+"""integration model inference"""
 
 import logging
 import os
@@ -61,7 +61,10 @@ if __name__ == "__main__":
                     zip(predictions, probabilities), 1
                 ):
                     logger.info(
-                        f"Клиент {i}: Прогноз оттока = {pred}, Вероятность оттока = {prob:.2f}"
+                        (
+                            f"Клиент {i}: Прогноз оттока = {pred}, "
+                            f"Вероятность оттока = {prob:.2f}"
+                        )
                     )
             else:
                 logger.error("Не удалось выполнить предсказания")

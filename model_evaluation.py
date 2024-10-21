@@ -1,4 +1,4 @@
-"""Скрипт для оценки и тестирования модели."""
+"""evaluation model"""
 
 import joblib
 import matplotlib.pyplot as plt
@@ -16,11 +16,10 @@ from feature_engineering import feature_engineering
 
 
 def evaluate_model(model, X_test, y_test):
-    # Предобработка тестовых данных
+
     X_test = preprocess_data(X_test, is_training=False)
     X_test = feature_engineering(X_test, is_training=False)
 
-    # Загрузка имен признаков и обеспечение соответствия
     feature_names = joblib.load('models/feature_names.pkl')
     X_test = X_test[feature_names]
 
@@ -29,13 +28,15 @@ def evaluate_model(model, X_test, y_test):
 
     accuracy = accuracy_score(y_test, predictions)
 
-    # Проверка наличия обоих классов перед вычислением AUC
     unique_classes = len(set(y_test))
     if unique_classes == 2:
         auc = roc_auc_score(y_test, proba)
     else:
         print(
-            f"Предупреждение: в y_test присутствует только {unique_classes} класс. ROC AUC не может быть вычислен."
+            (
+                f"Предупреждение: в y_test присутствует только {unique_classes} класс. "
+                f"ROC AUC не может быть вычислен."
+            )
         )
         auc = None
 
@@ -53,14 +54,12 @@ def evaluate_model(model, X_test, y_test):
 
 
 if __name__ == "__main__":
-    # Загрузка тестовых данных
+
     X_test = pd.read_csv('data/X_test.csv')
     y_test = pd.read_csv('data/y_test.csv')['Churn']
 
-    # Загрузка модели
     model = joblib.load('models/churn_model.pkl')
 
-    # Оценка модели
     accuracy, auc, report, conf_matrix = evaluate_model(model, X_test, y_test)
 
     # Вывод результатов
