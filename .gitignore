@@ -1,2 +1,5 @@
 __pycache__
 .vs_code
+.idea
+.DS_Store
+venv
