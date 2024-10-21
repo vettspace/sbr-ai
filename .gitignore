@@ -3,7 +3,8 @@ __pycache__
 .idea
 .DS_Store
 venv
-models
+models/churn_model.pkl
+models/feature_names.pkl
 new_customer_predictions.csv
 X_test_fe.csv
 X_test.csv
