@@ -1,7 +1,6 @@
-"""integration model inference"""
+"""Integration model inference."""
 
 import logging
-import os
 
 import joblib
 import pandas as pd
@@ -9,19 +8,22 @@ import pandas as pd
 from data_preprocessing import preprocess_data
 from feature_engineering import feature_engineering
 
+# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def load_model(model_path):
+    """Загрузка модели с указанного пути."""
     try:
         return joblib.load(model_path)
     except Exception as e:
-        logger.error(f"Ошибка при загрузке модели: {str(e)}")
+        logger.error("Ошибка при загрузке модели: %s", str(e))
         return None
 
 
-def predict_churn(model, new_data):
+def predict_churn(model, new_data: pd.DataFrame):
+    """Предсказание оттока клиентов на основе новых данных."""
     try:
         # Предобработка новых данных
         new_data = preprocess_data(new_data, is_training=False)
@@ -31,16 +33,18 @@ def predict_churn(model, new_data):
         feature_names = joblib.load('models/feature_names.pkl')
         new_data = new_data[feature_names]
 
+        # Прогнозы
         predictions = model.predict(new_data)
         probabilities = model.predict_proba(new_data)[:, 1]
         return predictions, probabilities
     except Exception as e:
-        logger.error(f"Ошибка при предсказании: {str(e)}")
+        logger.error("Ошибка при предсказании: %s", str(e))
         return None, None
 
 
 if __name__ == "__main__":
     model = load_model('models/churn_model.pkl')
+
     if model is None:
         logger.error("Не удалось загрузить модель")
     else:
@@ -48,6 +52,7 @@ if __name__ == "__main__":
             new_data = pd.read_csv('data/new_customer_data.csv')
 
             predictions, probabilities = predict_churn(model, new_data)
+
             if predictions is not None and probabilities is not None:
                 new_data['ChurnPrediction'] = predictions
                 new_data['ChurnProbability'] = probabilities
@@ -56,16 +61,6 @@ if __name__ == "__main__":
                 )
                 logger.info("Предсказания успешно сохранены")
 
-                # Вывод результатов
-                for i, (pred, prob) in enumerate(
-                    zip(predictions, probabilities), 1
-                ):
-                    logger.info(
-                        (
-                            f"Клиент {i}: Прогноз оттока = {pred}, "
-                            f"Вероятность оттока = {prob:.2f}"
-                        )
-                    )
             else:
                 logger.error("Не удалось выполнить предсказания")
         except FileNotFoundError:
@@ -73,4 +68,4 @@ if __name__ == "__main__":
                 "Файл 'new_customer_data.csv' не найден в директории 'data'"
             )
         except Exception as e:
-            logger.error(f"Произошла ошибка при обработке данных: {str(e)}")
+            logger.error("Произошла ошибка при обработке данных: %s", str(e))

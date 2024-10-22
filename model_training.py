@@ -1,7 +1,6 @@
-"""train model"""
+"""Train model."""
 
 import os
-
 import joblib
 import numpy as np
 import pandas as pd
@@ -10,7 +9,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 
 
-def train_model(X_train, y_train):
+def train_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """Train multiple models and select the best one using cross-validation."""
     models = {
         'RandomForest': RandomForestClassifier(random_state=42),
         'GradientBoosting': GradientBoostingClassifier(random_state=42),
@@ -25,6 +25,7 @@ def train_model(X_train, y_train):
     class_counts = y_train.value_counts()
     min_class_samples = class_counts.min()
 
+    # Check if there are enough samples for cross-validation
     if min_class_samples < 2:
         print("Недостаточно образцов в одном из классов для кросс-валидации.")
         print("Обучение модели без кросс-валидации.")
@@ -32,6 +33,7 @@ def train_model(X_train, y_train):
     else:
         cv = min(5, min_class_samples)
 
+    # Check if y_train has at least two classes
     if len(np.unique(y_train)) < 2:
         raise ValueError(
             "Целевая переменная y_train должна содержать как минимум 2 класса."
@@ -39,6 +41,7 @@ def train_model(X_train, y_train):
 
     y_train = y_train.values.ravel()
 
+    # Train models with cross-validation or simple training
     for name, model in models.items():
         try:
             if cv is not None:
@@ -75,7 +78,7 @@ def train_model(X_train, y_train):
         print("Не удалось найти подходящую модель.")
         return None
 
-    # Настройка гиперпараметров для лучшей модели
+    # Hyperparameter tuning for the best model
     if isinstance(best_model, RandomForestClassifier):
         param_grid = {
             'n_estimators': [50, 100],
@@ -95,6 +98,7 @@ def train_model(X_train, y_train):
             'solver': ['lbfgs'],
         }
 
+    # Perform grid search if cross-validation is available
     if cv is not None:
         grid_search = GridSearchCV(
             best_model, param_grid, cv=cv, scoring='accuracy', n_jobs=-1
@@ -108,25 +112,32 @@ def train_model(X_train, y_train):
 
 
 if __name__ == "__main__":
+    # Load training data
     X_train = pd.read_csv('data/X_train_fe.csv')
     y_train = pd.read_csv('data/y_train.csv')['Churn']
 
+    # Check if the number of samples in X_train and y_train matches
     assert len(X_train) == len(
         y_train
     ), "Число образцов в X_train и y_train не совпадает."
 
+    # Ensure the target variable has at least two classes
     if len(np.unique(y_train)) < 2:
         raise ValueError(
             "Целевая переменная y_train должна содержать как минимум 2 класса."
         )
 
+    # Train the model
     model = train_model(X_train, y_train)
+
     if model is not None:
-        # Создаем директорию models, если она не существует
+        # Create directory for models if it doesn't exist
         if not os.path.exists('models'):
             os.makedirs('models')
+
+        # Save the trained model
         joblib.dump(model, 'models/churn_model.pkl')
 
-        # Сохраняем имена признаков
+        # Save feature names
         feature_names = X_train.columns.tolist()
         joblib.dump(feature_names, 'models/feature_names.pkl')
